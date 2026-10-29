@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="Build a Bible-study worksheet in your browser. Keep your notes private, save a portable file, and print a reading, observation, and reflection page.">
+  <title>Bible Study Worksheet Maker · TrustBible</title>
+  <style>
+    :root{color-scheme:light;--paper:#fffdf7;--ink:#173b34;--muted:#52665d;--line:#d2ddd4;--accent:#24634c}
+    *{box-sizing:border-box}body{margin:0;background:#eaf0e8;color:var(--ink);font:17px/1.55 system-ui,sans-serif}
+    main{max-width:940px;margin:48px auto;padding:0 24px}a{color:#16563e;text-underline-offset:3px}button,input,textarea,select{font:inherit}
+    .eyebrow{text-transform:uppercase;letter-spacing:.12em;font-size:.75rem;font-weight:700}h1{font:clamp(2.2rem,6vw,3.7rem)/1.08 Georgia,serif;margin:14px 0 18px;max-width:680px}h2{font:1.45rem Georgia,serif;margin:0 0 8px}
+    .intro{max-width:680px;color:var(--muted)}.toolbar{display:flex;flex-wrap:wrap;gap:10px;margin:24px 0 12px}button,.file-button{border:1px solid var(--accent);border-radius:6px;padding:10px 15px;background:#fffdf7;color:var(--ink);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;font-size:.93rem;font-weight:650}
+    button.primary{background:var(--accent);color:white}button:hover,.file-button:hover{box-shadow:0 2px 0 #b8cdbb}button:focus-visible,input:focus-visible,textarea:focus-visible,.file-button:focus-within,select:focus-visible{outline:3px solid #b07c27;outline-offset:3px}
+    .file-button input{position:absolute;width:1px;height:1px;opacity:0}.status{min-height:1.6em;margin:8px 0;color:#36513e;font-size:.9rem}.status.error{color:#9d2929}
+    .sheet{background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:34px;box-shadow:0 8px 26px #1b39200a}.grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}label{display:block;font-size:.9rem;font-weight:700;margin:0 0 6px}.hint{font-weight:400;color:var(--muted);font-size:.85rem;margin:0 0 9px}
+    input,textarea,select{display:block;width:100%;color:var(--ink);border:1px solid #afc1b4;border-radius:4px;padding:10px 12px;background:#fff}textarea{resize:vertical;min-height:120px;overflow:hidden}input{min-height:46px}.section{padding-top:26px;margin-top:26px;border-top:1px solid var(--line)}.section textarea{min-height:128px}.section:first-of-type{margin-top:22px}
+    .sheet-title{margin-bottom:22px}.small{font-size:.85rem;color:var(--muted)}details{margin:24px 0}summary{cursor:pointer;font-weight:650}details li{margin:8px 0}footer{margin:22px 0 40px;max-width:750px;font-size:.88rem;color:var(--muted)}.print-note{display:none}
+    @media(max-width:600px){main{margin:28px auto;padding:0 16px}.sheet{padding:22px}.grid{grid-template-columns:1fr}.toolbar>*{flex:1 1 40%}}
+    @media print{body{background:white;font-size:11pt;color:black}main{max-width:none;margin:0;padding:0}.screen-only,.toolbar,.status,details{display:none!important}h1{font-size:24pt;margin:0 0 12px}.sheet{border:0;padding:0;box-shadow:none}.sheet-title{margin-bottom:12px}.section{padding-top:14px;margin-top:14px;break-inside:avoid}h2{font-size:15pt}input,textarea{border:0;border-bottom:1px solid #aaa;border-radius:0;padding:4px 0;background:white;color:black;font-size:11pt}.grid{gap:20px}textarea{resize:none;min-height:100px;overflow:visible}.print-note{display:block}footer{font-size:9pt;margin:20px 0 0}a{color:black}.hint,.small{color:#444}@page{size:auto;margin:16mm}}
+  </style>
+</head>
+<body>
+<main>
+  <header class="screen-only">
+    <div class="eyebrow">A free tool from TrustBible</div>
+    <h1>Read. Notice. Respond.</h1>
+    <p class="intro">Make a worksheet for one Bible passage. Write your own notes, save a portable copy, or print a page for your next study. No AI, account, or upload.</p>
+  </header>
+  <div class="toolbar screen-only" aria-label="Worksheet actions">
+    <button class="primary" id="print" type="button">Print worksheet</button>
+    <button id="download" type="button">Save worksheet file</button>
+    <label class="file-button">Open saved file<input id="import" type="file" accept="application/json,.json"></label>
+    <button id="example" type="button">Try an example</button>
+    <button id="clear" type="button">Clear notes</button>
+  </div>
+  <p id="status" class="status screen-only" role="status" aria-live="polite">Your notes stay in this tab. Save a file before closing it.</p>
+  <form id="worksheet" class="sheet" autocomplete="off">
+    <div class="sheet-title"><h2>Bible study worksheet</h2><p class="small">A place for careful reading, honest questions, and a practical response.</p></div>
+    <div class="grid">
+      <div><label for="title">Study title</label><input id="title" data-field="title" maxlength="200" placeholder="A title for this session"></div>
+      <div><label for="date">Date</label><input id="date" data-field="date" type="date"></div>
+      <div><label for="passage">Passage</label><input id="passage" data-field="passage" maxlength="200" placeholder="For example, John 15:1–8"></div>
+      <div><label for="translation">Translation or edition</label><input id="translation" data-field="translation" maxlength="200" placeholder="Name the edition you are reading"></div>
+    </div>
+    <section class="section"><h2>1. Read in context</h2><label for="context">What is happening around this passage?</label><p class="hint" id="context-hint">Who is speaking, to whom, and in what situation? Check the surrounding chapter.</p><textarea id="context" data-field="context" maxlength="8000" aria-describedby="context-hint"></textarea></section>
+    <section class="section"><h2>2. Notice what the text says</h2><label for="observations">Observations</label><p class="hint" id="observations-hint">List repeated words, contrasts, commands, images, or changes. Keep observations separate from your interpretation.</p><textarea id="observations" data-field="observations" maxlength="8000" aria-describedby="observations-hint"></textarea></section>
+    <section class="section"><h2>3. Ask and check</h2><label for="questions">Questions and sources to consult</label><p class="hint" id="questions-hint">What is unclear? Note another passage, a trusted reference, or a question for your study leader. Record the source of any explanation.</p><textarea id="questions" data-field="questions" maxlength="8000" aria-describedby="questions-hint"></textarea></section>
+    <section class="section"><h2>4. Respond thoughtfully</h2><label for="response">One response for today</label><p class="hint" id="response-hint">What might you do, reconsider, discuss, or pray about? A reflection is your response to the passage, not a new verse.</p><textarea id="response" data-field="response" maxlength="8000" aria-describedby="response-hint"></textarea></section>
+    <p class="print-note small">Personal study notes. Check quotations and interpretations against the passage and its context.</p>
+  </form>
+  <details class="screen-only"><summary>How to use this worksheet</summary><ol><li>Choose a short passage and write down the translation you use.</li><li>Read the surrounding context before filling in the four sections.</li><li>Use “Save worksheet file” to keep an editable JSON copy. “Open saved file” restores it on this device or another one.</li><li>Use your browser's print dialog to print or save as a PDF. Leave the fields empty to print a blank worksheet.</li></ol><p class="small">This tool does not interpret Scripture, generate answers, or store your work on a server. Your writing may include private information: keep downloaded files somewhere appropriate and avoid shared-device downloads. Closing or refreshing the tab discards unsaved changes.</p></details>
+  <footer>Made by <a href="https://trustbible.org/">TrustBible</a>, a Bible reading and question resource. This worksheet works independently and sends it no notes. Use your chosen Bible edition and trusted study resources; the worksheet does not replace pastoral guidance.</footer>
+</main>
+<script>
+  'use strict';
+  const fields = [...document.querySelectorAll('[data-field]')];
+  const status = document.getElementById('status');
+  const schema = 'trustbible-study-worksheet-v1';
+  function announce(message, error=false){status.textContent=message;status.classList.toggle('error',error)}
+  function resize(){document.querySelectorAll('textarea').forEach(el=>{el.style.height='auto';el.style.height=Math.max(128,el.scrollHeight+2)+'px'})}
+  function values(){return Object.fromEntries(fields.map(el=>[el.dataset.field,el.value]))}
+  function setValues(data){fields.forEach(el=>{el.value=data[el.dataset.field]||''});resize()}
+  function validData(data){
+    if(!data||data.schema!==schema||!data.fields||typeof data.fields!=='object'||Array.isArray(data.fields))throw new Error('This is not a worksheet file from this tool.');
+    for(const el of fields){const value=data.fields[el.dataset.field];if(typeof value!=='string'||value.length>(el.maxLength>0?el.maxLength:200))throw new Error('The worksheet contains missing or oversized fields.');if(el.type==='date'&&value){const check=document.createElement('input');check.type='date';check.value=value;if(!/^\d{4}-\d{2}-\d{2}$/.test(value)||check.value!==value)throw new Error('The worksheet date is invalid.')}}
+    return data.fields;
+  }
+  document.getElementById('worksheet').addEventListener('submit',event=>event.preventDefault());
+  fields.forEach(el=>el.addEventListener('input',()=>{resize();announce('Changes are in this tab only. Save a file to keep them.')}));
+  document.getElementById('print').addEventListener('click',()=>{resize();window.print()});
+  document.getElementById('download').addEventListener('click',()=>{
+    const blob=new Blob([JSON.stringify({schema,fields:values()},null,2)],{type:'application/json'});
+    const link=document.createElement('a');const objectUrl=URL.createObjectURL(blob);link.href=objectUrl;link.download='bible-study-worksheet.json';link.click();setTimeout(()=>URL.revokeObjectURL(objectUrl),1000);announce('Saved an editable worksheet file. Keep it private if it includes personal notes.');
+  });
+  document.getElementById('import').addEventListener('change',async event=>{
+    const file=event.target.files[0];if(!file)return;
+    try{if(file.size>100000)throw new Error('Choose a worksheet file smaller than 100 KB.');const data=validData(JSON.parse(await file.text()));if(fields.some(el=>el.value)&&!window.confirm('Replace the notes in this tab with the saved worksheet?'))return;setValues(data);announce('Worksheet opened locally. No file was uploaded.')}catch(error){announce(error instanceof SyntaxError?'The file is not valid JSON. Your notes were kept.':error.message+' Your notes were kept.',true)}finally{event.target.value=''}
+  });
+  document.getElementById('clear').addEventListener('click',()=>{if(fields.some(el=>el.value)&&!window.confirm('Clear the notes in this tab? Save a file first if you want to keep them.'))return;setValues({});announce('Blank worksheet ready. You can print it or start a new study.')});
+  document.getElementById('example').addEventListener('click',()=>{if(fields.some(el=>el.value)&&!window.confirm('Replace your notes with a demonstration worksheet?'))return;setValues({title:'A careful first reading',date:'',passage:'John 15:1–8',translation:'Enter the edition you choose',context:'Read the previous and following paragraphs. Record the speaker, audience, and setting.',observations:'Write down repeated words or images. Add verse references so you can check each observation.',questions:'What needs clarification? List the passage or study resource you will consult, and record what it actually says.',response:'Choose one question to discuss with your study group, or one concrete response to consider.'});announce('Demonstration prompts loaded. These are study instructions, not commentary on the passage.')});
+  window.addEventListener('beforeprint',resize);window.addEventListener('afterprint',resize);resize();
+</script>
+</body>
+</html>
